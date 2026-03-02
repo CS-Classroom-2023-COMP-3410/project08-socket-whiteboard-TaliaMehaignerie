@@ -24,6 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle window resize
   // TODO: Add an event listener for the 'resize' event that calls resizeCanvas
+  canvas.addEventListener('resize', e => {
+    resizeCanvas();
+    console.log(`Canvas resized`);
+  });
 
   // Drawing variables
   let isDrawing = false;
@@ -38,27 +42,34 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Connected to the server');
     connectionStatus.innerHTML = "Connected";
 
+    // TODO: Set up Socket.IO event handlers
+    // clear board
     socket.on('clear', () => {
       console.log("Clear command received");
       context.clearRect(0, 0, canvas.width, canvas.height);
     });
+    // draw
     socket.on('draw', (drawData) => {
       console.log("draw command received");
       drawLine(drawData.lastX, drawData.lastY, drawData.currX, drawData.currY, drawData.color, drawData.brushSize)
     });
+    // current User count
     socket.on('currentUsers', (currentUsers) => {
       console.log("currentUsers received");
       userCount.innerHTML = currentUsers;
+    });
+    // board state
+    socket.on('boardState', (boardState) => {
+      console.log("board state received");
+      //context.drawImage(boardState, 0, 0);
       
     });
-    
+    // disconnect
     socket.on('disconnect', () => {
       console.log();
       socket.disconnect();
     });
   });
-
-  // TODO: Set up Socket.IO event handlers
 
 
   // Canvas event handlers
@@ -88,10 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
     stopDrawing();
   });
 
-
-  // Touch support (optional)
-  // TODO: Add event listeners for touch events (touchstart, touchmove, touchend, touchcancel)
-
   // Clear button event handler
   // TODO: Add event listener for the clear button
   clearButton.addEventListener("click", e => {
@@ -106,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     brushSizeDisplay.innerHTML = brushSizeInput.value;
   });
 
-
   function startDrawing(e) {
     // TODO: Set isDrawing to true 
     isDrawing = true;
@@ -115,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const coords = getCoordinates(e);
     lastX = coords.x;
     lastY = coords.y;
-
   }
 
   function draw(e) {
@@ -145,9 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
       lastX = currCoords.x;
       lastY = currCoords.y;
     }
-
   }
-
+  // NOTE: code copied from slides 
   function drawLine(x0, y0, x1, y1, color, size) {
     // TODO: Draw a line on the canvas using the provided parameters
     // Start a new path
@@ -170,10 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function clearCanvas() {
     context.clearRect(0, 0, canvas.width, canvas.height);
-
     // TODO: Emit 'clear' event to the server
     socket.emit('clear');
-
   }
 
   function redrawCanvas(boardState = []) {
@@ -181,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     // TODO: Redraw all lines from the board state
+    //context.drawImage(boardState, 0, 0);
   }
 
   // Helper function to get coordinates from mouse or touch event
@@ -201,14 +204,5 @@ document.addEventListener('DOMContentLoaded', () => {
         y: e.offsetY
       };
     }
-  }
-
-  // Handle touch events
-  function handleTouchStart(e) {
-    // TODO: Prevent default behavior and call startDrawing
-  }
-
-  function handleTouchMove(e) {
-    // TODO: Prevent default behavior and call draw
   }
 });
